@@ -109,14 +109,18 @@ const BleAppCfg_t s_BleAppCfg = {
 	.SDEvtHandler = NULL				// RTOS Softdevice handler
 };
 
+static const IOPinCfg_t s_I2cPins[] = {
+	{I2C_SDA_PORT, I2C_SDA_PIN, I2C_SDA_PINOP, IOPINDIR_BI, IOPINRES_PULLUP, IOPINTYPE_OPENDRAIN},		// SDA
+	{I2C_SCL_PORT, I2C_SCL_PIN, I2C_SCL_PINOP, IOPINDIR_OUTPUT, IOPINRES_PULLUP, IOPINTYPE_OPENDRAIN},	// SCL
+};
+
 static const I2CCfg_t s_I2cCfg = {
 	.DevNo = 0,			// I2C device number
-	.Pins = {
-		{I2C_SDA_PORT, I2C_SDA_PIN, I2C_SDA_PINOP, IOPINDIR_BI, IOPINRES_PULLUP, IOPINTYPE_OPENDRAIN},		// SDA
-		{I2C_SCL_PORT, I2C_SCL_PIN, I2C_SCL_PINOP, IOPINDIR_OUTPUT, IOPINRES_PULLUP, IOPINTYPE_OPENDRAIN},	// SCL
-	},
-	.Rate = 100000,		// Rate
+	.Type = I2CTYPE_STANDARD,
 	.Mode = I2CMODE_MASTER,
+	.pIOPinMap = s_I2cPins,
+	.NbIOPins = sizeof(s_I2cPins) / sizeof(IOPinCfg_t),
+	.Rate = 100000,		// Rate
 	.MaxRetry = 5,			// Retry
 	.NbSlaveAddr = 0,			// Number of slave addresses
 	.SlaveAddr = {0,},		// Slave addresses
@@ -194,7 +198,7 @@ void AdcEvt(Device * const pDev, DEV_EVT Evt)
 	}
 }
 
-void NauIntHandler(int IntNo)
+void NauIntHandler(int IntNo, void *pCtx)
 {
 	if (IntNo == 0)
 	{
@@ -214,7 +218,7 @@ void HardwareInit()
 	g_I2C.Init(s_I2cCfg);
 
 	IOPinCfg(&s_NauIntPin, 1);
-	IOPinEnableInterrupt(0, APP_IRQ_PRIORITY_LOW, NAU7802_INT_PORT, NAU7802_INT_PIN, IOPINSENSE_HIGH_TRANSITION, NauIntHandler);
+	IOPinEnableInterrupt(0, APP_IRQ_PRIORITY_LOW, NAU7802_INT_PORT, NAU7802_INT_PIN, IOPINSENSE_HIGH_TRANSITION, NauIntHandler, NULL);
 
 	g_Adc.Init(s_AdcCfg, nullptr, &g_I2C);
 }
