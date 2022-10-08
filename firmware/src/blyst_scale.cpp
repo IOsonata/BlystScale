@@ -38,7 +38,8 @@ SOFTWARE.
 #include "app_scheduler.h"
 
 #include "istddef.h"
-#include "ble_app.h"
+#include "bluetooth/ble_app.h"
+#include "ble_app_nrf5.h"
 #include "ble_service.h"
 #include "bluetooth/blueio_blesrvc.h"
 #include "blueio_board.h"
@@ -59,12 +60,12 @@ SOFTWARE.
 #define MANUFACTURER_ID                 ISYST_BLUETOOTH_ID                  /**< Manufacturer ID, part of System ID. Will be passed to Device Information Service. */
 #define ORG_UNIQUE_ID                   ISYST_BLUETOOTH_ID                  /**< Organizational Unique ID, part of System ID. Will be passed to Device Information Service. */
 
-#define APP_ADV_INTERVAL                MSEC_TO_UNITS(64, UNIT_0_625_MS)	/**< The advertising interval (in units of 0.625 ms. This value corresponds to 40 ms). */
+#define APP_ADV_INTERVAL               	64// MSEC_TO_UNITS(64, UNIT_0_625_MS)	/**< The advertising interval (in units of 0.625 ms. This value corresponds to 40 ms). */
 
-#define APP_ADV_TIMEOUT					MSEC_TO_UNITS(500, UNIT_10_MS)		/**< The advertising timeout (in units of 10ms seconds). */
+#define APP_ADV_TIMEOUT					0//MSEC_TO_UNITS(500, UNIT_10_MS)		/**< The advertising timeout (in units of 10ms seconds). */
 
-#define MIN_CONN_INTERVAL               MSEC_TO_UNITS(10, UNIT_1_25_MS)     /**< Minimum acceptable connection interval (20 ms), Connection interval uses 1.25 ms units. */
-#define MAX_CONN_INTERVAL               MSEC_TO_UNITS(40, UNIT_1_25_MS)     /**< Maximum acceptable connection interval (75 ms), Connection interval uses 1.25 ms units. */
+#define MIN_CONN_INTERVAL               8//MSEC_TO_UNITS(10, UNIT_1_25_MS)     /**< Minimum acceptable connection interval (20 ms), Connection interval uses 1.25 ms units. */
+#define MAX_CONN_INTERVAL               40//MSEC_TO_UNITS(40, UNIT_1_25_MS)     /**< Maximum acceptable connection interval (75 ms), Connection interval uses 1.25 ms units. */
 
 BleAdvManData_t g_AdvData = {
 	BLUEIO_DATA_TYPE_ADC,
@@ -79,15 +80,16 @@ const BleAppDevInfo_t s_UartBleDevDesc = {
 };
 
 const BleAppCfg_t s_BleAppCfg = {
-	.ClkCfg = { NRF_CLOCK_LF_SRC_XTAL, 0, 0, NRF_CLOCK_LF_ACCURACY_20_PPM},
+//	.ClkCfg = { NRF_CLOCK_LF_SRC_XTAL, 0, 0, NRF_CLOCK_LF_ACCURACY_20_PPM},
+	.Role = BLEAPP_ROLE_PERIPHERAL,
 	.CentLinkCount = 0, 				// Number of central link
 	.PeriLinkCount = 1, 				// Number of peripheral link
-	.AppMode = BLEAPP_MODE_NOCONNECT,	// Use scheduler
+	//.AppMode = BLEAPP_MODE_NOCONNECT,	// Use scheduler
 	.pDevName = DEVICE_NAME,			// Device name
 	.VendorID = ISYST_BLUETOOTH_ID,		// PnP Bluetooth/USB vendor id
 	.ProductId = 1,						// PnP Product ID
 	.ProductVer = 0,					// Pnp prod version
-	.bEnDevInfoService = true,			// Enable device information service (DIS)
+	//.bEnDevInfoService = true,			// Enable device information service (DIS)
 	.pDevDesc = &s_UartBleDevDesc,
 	.pAdvManData = (uint8_t*)&g_AdvData,			// Manufacture specific data to advertise
 	.AdvManDataLen = sizeof(BleAdvManData_t),	// Length of manufacture specific data
@@ -177,7 +179,7 @@ void BleAppAdvTimeoutHandler()
 {
 	BleAppAdvManDataSet((uint8_t*)&g_AdvData, sizeof(BleAdvManData_t), NULL, 0);
 
-	BleAppAdvStart(BLEAPP_ADVMODE_FAST);
+	BleAppAdvStart();//BLEAPP_ADVMODE_FAST);
 }
 
 void AdcEvt(Device * const pDev, DEV_EVT Evt)
@@ -240,7 +242,7 @@ int main()
 {
     HardwareInit();
 
-    BleAppInit((const BLEAPP_CFG *)&s_BleAppCfg, true);
+    BleAppInit((const BleAppCfg_t *)&s_BleAppCfg);//, true);
 
     g_BleStarted = true;
 
